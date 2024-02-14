@@ -27,33 +27,37 @@ public class Main {
         }
 
         //Creating set of entries
-        List<Entry<Integer, String>> entries = map.entrySet();
+        List<KeyValuePair<Integer, String>> entries = map.entrySet();
 
         //Applying median of medians for entities
-        Entry<Integer, String> student = select(entries, (n - 1) / 2);
+        KeyValuePair<Integer, String> student = select(entries, (n - 1) / 2);
 
 
         //Printing the middle element
         System.out.println(student.value);
 
     }
-    public static Entry<Integer, String> select(List<Entry<Integer, String>> list, int k) {
+    public static KeyValuePair<Integer, String> select(List<KeyValuePair<Integer, String>> list, int k) {
+        //returning the value when array would be small enough
         if (list.size() <= 10) {
             sort(list);
             return list.get(k);
         }
 
-        ArrayList<Entry<Integer, String>> medians = new ArrayList<>();
+        //Finding medians
+        ArrayList<KeyValuePair<Integer, String>> medians = new ArrayList<>();
         for (int i = 0; i < list.size(); i += 5) {
-            ArrayList<Entry<Integer, String>> sublist = new ArrayList<>(list.subList(i, min(i + 5, list.size())));
+            ArrayList<KeyValuePair<Integer, String>> sublist = new ArrayList<>(subList(list, i, min(i + 5, list.size())));
             sort(sublist);
             medians.add(sublist.get(sublist.size() / 2));
         }
 
-        Entry<Integer, String> pivot = select(medians, medians.size() / 2);
+        //Finding pivot
+        KeyValuePair<Integer, String> pivot = select(medians, medians.size() / 2);
 
-        ArrayList<Entry<Integer, String>> lower = new ArrayList<>(), higher = new ArrayList<>(), equal = new ArrayList<>();
-        for (Entry<Integer, String> num : list) {
+        //Dividing the array for >pivot, <pivot, =pivot
+        ArrayList<KeyValuePair<Integer, String>> lower = new ArrayList<>(), higher = new ArrayList<>(), equal = new ArrayList<>();
+        for (KeyValuePair<Integer, String> num : list) {
             if (num.key < pivot.key) {
                 lower.add(num);
             } else if (num.key > pivot.key) {
@@ -63,6 +67,7 @@ public class Main {
             }
         }
 
+        //Finding k-th element in this arrays
         if (k < lower.size()) {
             return select(lower, k);
         } else if (k >= lower.size() + equal.size()) {
@@ -71,9 +76,11 @@ public class Main {
             return pivot;
         }
     }
-    public static void sort(List<Entry<Integer, String>> list){
+
+    //Selection sort for median of medians algorithm
+    public static void sort(List<KeyValuePair<Integer, String>> list){
         for (int i = 0; i < list.size() - 1; i++){
-            Entry<Integer,String> mn = list.get(i);
+            KeyValuePair<Integer,String> mn = list.get(i);
             int temp = i;
             for (int j = i + 1; j < list.size(); j++){
                 if (mn.key > list.get(j).key){
@@ -87,12 +94,23 @@ public class Main {
             list.set(i, mn);
         }
     }
+
+    //Function that returns the minimum number out of 2
     public static int min(int a, int b){
         if (a < b){
             return a;
         } else {
             return b;
         }
+    }
+
+    //Function returns the sublist from star(inclusively) till the end(explicitly).
+    public static List<KeyValuePair<Integer, String>> subList(List<KeyValuePair<Integer, String>> arr, int start, int end){
+        List<KeyValuePair<Integer, String>> sublist = new ArrayList<>();
+        for (int i = start; i < end; i++){
+            sublist.add(arr.get(i));
+        }
+        return sublist;
     }
 }
 
@@ -108,15 +126,16 @@ interface Map<K, V> {
 
     void remove(K key);
 
-    List<Entry<K, V>> entrySet();
+    List<KeyValuePair<K, V>> entrySet();
 }
+
 //Class for objects with entry type for mep and set in main.
 //Object of this type have key and value.
-class Entry<K, V> {
+class KeyValuePair<K, V> {
     K key;
     V value;
 
-    public Entry(K key, V value) {
+    public KeyValuePair(K key, V value) {
         this.key = key;
         this.value = value;
     }
@@ -127,7 +146,7 @@ class Entry<K, V> {
 class HashMap<K, V> implements Map<K, V> {
     int mapSize;
     int capacity;
-    List<Entry<K, V>>[] hashTable;
+    List<KeyValuePair<K, V>>[] hashTable;
 
     public HashMap(int capacity) {
         this.capacity = capacity;
@@ -138,9 +157,9 @@ class HashMap<K, V> implements Map<K, V> {
         }
     }
 
-    public Entry<K, V> getEntry(K key) {
+    public KeyValuePair<K, V> getEntry(K key) {
         int hashcode = Math.abs(key.hashCode()) % capacity;
-        for (Entry<K, V> entry : hashTable[hashcode]) {
+        for (KeyValuePair<K, V> entry : hashTable[hashcode]) {
             if (entry.key.equals(key)) {
                 return entry;
             }
@@ -161,7 +180,7 @@ class HashMap<K, V> implements Map<K, V> {
     @Override
     public V get(K key) {
         int hashcode = Math.abs(key.hashCode()) % capacity;
-        for (Entry<K, V> entry : hashTable[hashcode]) {
+        for (KeyValuePair<K, V> entry : hashTable[hashcode]) {
             if (entry.key.equals(key)) {
                 return entry.value;
             }
@@ -173,11 +192,11 @@ class HashMap<K, V> implements Map<K, V> {
     public void put(K key, V value) {
         try {
             if (get(key) != null) {
-                Entry<K, V> temp = getEntry(key);
+                KeyValuePair<K, V> temp = getEntry(key);
                 temp.value = value;
             } else {
                 int hash = Math.abs(key.hashCode()) % this.capacity;
-                hashTable[hash].add(new Entry<>(key, value));
+                hashTable[hash].add(new KeyValuePair<>(key, value));
                 this.mapSize++;
                 if (mapSize > capacity) {
                     throw new Exception();
@@ -192,7 +211,7 @@ class HashMap<K, V> implements Map<K, V> {
     @Override
     public void remove(K key) {
         int hashcode = Math.abs(key.hashCode()) % capacity;
-        for (Entry<K, V> entry : hashTable[hashcode]) {
+        for (KeyValuePair<K, V> entry : hashTable[hashcode]) {
             if (entry.key.equals(key)) {
                 hashTable[hashcode].remove(entry);
             }
@@ -200,10 +219,10 @@ class HashMap<K, V> implements Map<K, V> {
     }
 
     @Override
-    public List<Entry<K, V>> entrySet() {
-        List<Entry<K, V>> entries = new ArrayList<>();
-        for (List<Entry<K, V>> list : this.hashTable) {
-            for (Entry<K, V> entry : list) {
+    public List<KeyValuePair<K, V>> entrySet() {
+        List<KeyValuePair<K, V>> entries = new ArrayList<>();
+        for (List<KeyValuePair<K, V>> list : this.hashTable) {
+            for (KeyValuePair<K, V> entry : list) {
                 entries.add(entry);
             }
         }
